@@ -41,7 +41,8 @@ public class TypeCheckerTest {
     ASTNode cu = Parser.parse(fileURI);
 
     // TODO: instantiate visitor, call cu.accept(visitor), and return proof
-    //return cu.accept(visitor);
+    TypeCheckerVisitor visitor = new TypeCheckerVisitor();
+    //cu.accept(visitor);
     return null;
   }
   

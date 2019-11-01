@@ -11,6 +11,7 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
@@ -18,6 +19,10 @@ import org.junit.jupiter.api.DynamicTest;
 public class TypeCheckerVisitor extends ASTVisitor {
   private Deque<List<DynamicNode>> proofStack = null;
   private List<DynamicNode> proofs = new ArrayList<>();
+  
+  public TypeCheckerVisitor() {
+    //TODO Instantiate Environment
+  }
 
   public List<DynamicNode> popProof() {
     return proofStack.pop();
