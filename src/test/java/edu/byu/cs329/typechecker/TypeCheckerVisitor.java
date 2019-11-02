@@ -3,6 +3,7 @@ package edu.byu.cs329.typechecker;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Stack;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
@@ -10,6 +11,7 @@ import org.eclipse.jdt.core.dom.EmptyStatement;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicContainer;
@@ -19,9 +21,13 @@ import org.junit.jupiter.api.DynamicTest;
 public class TypeCheckerVisitor extends ASTVisitor {
   private Deque<List<DynamicNode>> proofStack = null;
   private List<DynamicNode> proofs = new ArrayList<>();
-  
-  public TypeCheckerVisitor() {
-    //TODO Instantiate Environment
+  private ISymbolTable symbolTable = null;
+  private Stack<String> className = new Stack<>();
+  private String methodName = null;
+  private List<List<String>> frames = new ArrayList<>();
+
+  public TypeCheckerVisitor(ISymbolTable symbolTable) {
+    this.symbolTable = symbolTable;
   }
 
   public List<DynamicNode> popProof() {
@@ -34,6 +40,24 @@ public class TypeCheckerVisitor extends ASTVisitor {
 
   private List<DynamicNode> peekProof() {
     return proofStack.peek();
+  }
+  
+  private void pushFrame(ArrayList<String> list) {
+    this.frames.add(list);
+  }
+  
+  private List<String> popFrame() {
+    if (!this.frames.isEmpty()) {
+      return this.frames.remove(this.frames.size() - 1);
+    }
+    return null;
+  }
+  
+  private List<String> peekFrame(){
+    if (!this.frames.isEmpty()) {
+      return this.frames.get(this.frames.size() - 1);
+    }
+    return null;
   }
 
   @Override
@@ -104,9 +128,10 @@ public class TypeCheckerVisitor extends ASTVisitor {
 
   @Override
   public boolean visit(Block node) {
-    pushFrame(new ArrayList<>());
+    pushFrame(new ArrayList<String>());
     return super.visit(node);
   }
+
 
   @Override
   public void endVisit(Block node) {
@@ -114,6 +139,7 @@ public class TypeCheckerVisitor extends ASTVisitor {
     symbolTable.removeLocals(frame);
   }
 
+  
   @Override
   public boolean visit(VariableDeclarationFragment node) {
     pushProof(new ArrayList<>());

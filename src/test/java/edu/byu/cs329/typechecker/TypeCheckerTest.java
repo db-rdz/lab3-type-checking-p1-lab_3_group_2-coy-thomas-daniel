@@ -19,7 +19,10 @@ import org.junit.jupiter.api.TestFactory;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+/**
+ * The Suite of tests for the Type Checker
+ *
+ */
 public class TypeCheckerTest {
   static final Logger log = LoggerFactory.getLogger(TypeCheckerTest.class);
 
@@ -36,14 +39,13 @@ public class TypeCheckerTest {
     return uri;
   }
 
-  private List<DynamicNode> generateProof(final String fileName, ISymbolTable symbolTable) {
+  private List<DynamicNode> generateProofs(final String fileName, ISymbolTable symbolTable) {
     URI fileURI = getURI(fileName);
     ASTNode cu = Parser.parse(fileURI);
 
-    // TODO: instantiate visitor, call cu.accept(visitor), and return proof
-    TypeCheckerVisitor visitor = new TypeCheckerVisitor();
-    //cu.accept(visitor);
-    return null;
+    TypeCheckerVisitor visitor = new TypeCheckerVisitor(symbolTable);
+    cu.accept(visitor);
+    return visitor.getProofs();
   }
   
   private long getContainerCount(final Stream<? extends DynamicNode> proof) {
@@ -70,7 +72,7 @@ public class TypeCheckerTest {
     @Test
     @DisplayName("Should create one container when given an empty class")
     void Should_createOneContainer_When_givenEmptyClass() {
-      List<DynamicNode> proof = generateProof(fileName, symbolTable);
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
       long containerCount = getContainerCount(proof.stream());
       Assertions.assertEquals(1, containerCount);
     }
@@ -78,7 +80,7 @@ public class TypeCheckerTest {
     @Test
     @DisplayName("Should create one test when given an empty class")
     void Should_createOneTest_When_givenEmptyClass() {
-      List<DynamicNode> proof = generateProof(fileName, symbolTable);
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
       long testCount = getTestCount(proof.stream());
       Assertions.assertEquals(1, testCount);
     }
@@ -86,7 +88,7 @@ public class TypeCheckerTest {
     @TestFactory
     @DisplayName("Should prove type safe when given an empty class")
     Stream<DynamicNode> Should_proveTypeSafe_When_givenEmptyClass() {
-      return generateProof("EmptyClass.java", symbolTable).stream();
+      return generateProofs("EmptyClass.java", symbolTable).stream();
     }
   }
   
@@ -102,7 +104,7 @@ public class TypeCheckerTest {
     @Test
     @DisplayName("Should create three containers when given a class with one method with empty statement")
     void Should_createThreeContainers_When_givenOneMethodWithEmptyStatement() {   
-      List<DynamicNode> proof = generateProof(fileName, symbolTable);
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
       long containerCount = getContainerCount(proof.stream());
       Assertions.assertEquals(3, containerCount);
     }
@@ -110,14 +112,14 @@ public class TypeCheckerTest {
     @Test
     @DisplayName("Should create three containers when given a class with one method with empty statement")
     void Should_createOneTest_When_givenOneMethodWithEmptyStatement() {
-      List<DynamicNode> proof = generateProof(fileName, symbolTable);
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
       long testCount = getTestCount(proof.stream());
-      Assertions.assertEquals(1, testCount);
+      Assertions.assertEquals(3, testCount);
     }
 
     @TestFactory
     Stream<DynamicNode> Should_proveTypeSafe_When_givenOneMethodWithEmptyStatement() {
-      return generateProof(fileName, symbolTable).stream();
+      return generateProofs(fileName, symbolTable).stream();
     }
   }
   
@@ -132,7 +134,7 @@ public class TypeCheckerTest {
     @Test
     @DisplayName("Should create seven containers when given a class with three methods with empty statements")
     void Should_createThreeContainers_When_givenMultipleMethodsWithEmptyStatement() {   
-      List<DynamicNode> proof = generateProof(fileName, symbolTable);
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
       long containerCount = getContainerCount(proof.stream());
       Assertions.assertEquals(7, containerCount);
     }
@@ -140,14 +142,139 @@ public class TypeCheckerTest {
     @Test
     @DisplayName("Should create three containers when given a class with three methods with empty statements")
     void Should_createOneTest_When_givenMultipleMethodsWithEmptyStatement() {
-      List<DynamicNode> proof = generateProof(fileName, symbolTable);
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
       long testCount = getTestCount(proof.stream());
       Assertions.assertEquals(1, testCount);
     }
 
     @TestFactory
     Stream<DynamicNode> Should_proveTypeSafe_When_givenMultipleMethodsWithEmptyStatement() {
-      return generateProof(fileName, symbolTable).stream();
+      return generateProofs(fileName, symbolTable).stream();
+    }
+  }
+  
+  @Nested
+  @DisplayName("Test for CompliationUnits")
+  class CompilationUnitsTests {
+    String fileName = "EmptyClass.java";
+    ISymbolTable symbolTable = Mockito.mock(ISymbolTable.class);
+    
+    @Test
+    @DisplayName("")
+    void Should_createCorrectCompilationUnit_When_givenAnyClassFile() {   
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
+      //TODO: Check Compilation Unit here
+    }
+
+    @TestFactory
+    Stream<DynamicNode> Should_proveTypeSafe_When_givenSomething() {
+      return generateProofs(fileName, symbolTable).stream();
+    }
+  }
+  
+  @Nested
+  @DisplayName("Tests for Type Declarations")
+  class TypeDeclarationTests {
+    @Test
+    @DisplayName("Test inappropriate value assigned to Boolean type")
+    void Should_notReturnTypeCorrectProof_When_givenFileAssigningWrongObjectToBooleanType() {
+      String fileName = "WrongTypeToBoolean.java";
+      ISymbolTable symbolTable = Mockito.mock(ISymbolTable.class);
+      
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
+      //TODO: Verify that the proof does not say type correct
+    }
+    
+    @Test
+    @DisplayName("Test appropriate value assigned to Boolean type")
+    void Should_doSomething_When_givenSomething() {
+      String fileName = "RightTypeToBoolean.java";
+      ISymbolTable symbolTable = Mockito.mock(ISymbolTable.class);
+      
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
+      //TODO: verify that the proof is type safe
+    }
+    
+    //TODO: More tests here for the Literal types short, int, and String
+  }
+  
+  @Nested
+  @DisplayName("Tests for Method Statements")
+  class MethodTests {
+    String fileName = "";
+    ISymbolTable symbolTable = Mockito.mock(ISymbolTable.class);
+    
+    @Test
+    @DisplayName("")
+    void Should_doSomething_When_givenSomething() {   
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
+      long containerCount = getContainerCount(proof.stream());
+      Assertions.assertEquals(7, containerCount);
+    }
+
+    @TestFactory
+    Stream<DynamicNode> Should_proveTypeSafe_When_givenSomething() {
+      return generateProofs(fileName, symbolTable).stream();
+    }
+  }
+  
+  @Nested
+  @DisplayName("Tests for Block Statements")
+  class BlockStatementTests {
+    String fileName = "";
+    ISymbolTable symbolTable = Mockito.mock(ISymbolTable.class);
+    
+    @Test
+    @DisplayName("")
+    void Should_doSomething_When_givenSomething() {   
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
+      long containerCount = getContainerCount(proof.stream());
+      Assertions.assertEquals(7, containerCount);
+    }
+
+    @TestFactory
+    Stream<DynamicNode> Should_proveTypeSafe_When_givenSomething() {
+      return generateProofs(fileName, symbolTable).stream();
+    }
+  }
+  
+  @Nested
+  @DisplayName("Tests for Variable Declaration Fragments")
+  class VariableDeclarationFragmentTests{
+    String fileName = "";
+    ISymbolTable symbolTable = Mockito.mock(ISymbolTable.class);
+    
+    @Test
+    @DisplayName("")
+    void Should_doSomething_When_givenSomething() {   
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
+      long containerCount = getContainerCount(proof.stream());
+      Assertions.assertEquals(7, containerCount);
+    }
+
+    @TestFactory
+    Stream<DynamicNode> Should_proveTypeSafe_When_givenSomething() {
+      return generateProofs(fileName, symbolTable).stream();
+    }
+  }
+  
+  @Nested
+  @DisplayName("Tests for Types of Literals")
+  class LiteralTypeTests {
+    String fileName = "";
+    ISymbolTable symbolTable = Mockito.mock(ISymbolTable.class);
+    
+    @Test
+    @DisplayName("")
+    void Should_doSomething_When_givenSomething() {   
+      List<DynamicNode> proof = generateProofs(fileName, symbolTable);
+      long containerCount = getContainerCount(proof.stream());
+      Assertions.assertEquals(7, containerCount);
+    }
+
+    @TestFactory
+    Stream<DynamicNode> Should_proveTypeSafe_When_givenSomething() {
+      return generateProofs(fileName, symbolTable).stream();
     }
   }
 }
