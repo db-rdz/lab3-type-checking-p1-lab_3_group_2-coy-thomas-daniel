@@ -7,9 +7,12 @@ import java.util.Stack;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.EmptyStatement;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.NumberLiteral;
+import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
@@ -155,10 +158,30 @@ public class TypeCheckerVisitor extends ASTVisitor {
 
     Expression e = node.getInitializer();
     if (e != null) {
-      assignmentObligations(name, e);
+      return assignmentObligations(name, e);
     }
 
     return false;
+  }
+
+  private boolean assignmentObligations(String name, Expression e) {
+    String localType = symbolTable.getLocalType(name);
+    if (localType != null) {
+      if(e.getClass().isInstance(NumberLiteral.class) && isNumberType(localType)) {
+        return true;
+      }
+      if(e.getClass().isInstance(BooleanLiteral.class) && (localType == "boolean" || localType == "Boolean")) {
+        return true;
+      }
+      if(e.getClass().isInstance(StringLiteral.class) && localType == "String") {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isNumberType(String localType) {
+    return (localType == "int") || (localType == "short") || (localType == "Int") || (localType == "Short");
   }
 
   public List<DynamicNode> getProofs() {
